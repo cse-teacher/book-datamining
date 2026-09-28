@@ -32,4 +32,4 @@ latexmk -xelatex -interaction=nonstopmode main.tex
 
 ## مجوز
 
-این اثر تحت مجوز Creative Commons BY-NC-SA 4.0 منتشر می‌شود (در صورت تمایل تغییر دهید).
+این اثر تحت مجوز Creative Commons BY-NC-SA 4.0 منتشر می‌شود.
