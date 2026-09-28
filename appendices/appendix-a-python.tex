@@ -1,0 +1,79 @@
+\chapter{پایتون برای داده‌کاوی}
+\label{app:python}
+
+این پیوست شامل پیاده‌سازی عملی مثال‌های هر فصل با استفاده از کتابخانه‌های \texttt{pandas}،
+\texttt{numpy}، \texttt{scikit-learn}، \texttt{matplotlib} و \texttt{mlxtend} است.
+کد کامل هر بخش در پوشهٔ texttt{code} مخزن گیت‌هاب قرار دارد و در اینجا تنها بخش‌های
+کلیدی برای تطبیق با متن کتاب آورده شده‌اند.
+
+\section{آماده‌سازی محیط}
+\begin{lstlisting}
+pip install pandas numpy scikit-learn matplotlib mlxtend
+\end{lstlisting}
+
+\section{فصل ۲ — پیش‌پردازش داده}
+\begin{lstlisting}
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+df = pd.read_csv("data.csv")
+df = df.dropna()
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(df.select_dtypes(include="number"))
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+\end{lstlisting}
+
+\section{فصل ۳ و ۴ — طبقه‌بندی}
+\begin{lstlisting}
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, roc_auc_score
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+clf = DecisionTreeClassifier(max_depth=5)
+clf.fit(X_train, y_train)
+print(classification_report(y_test, clf.predict(X_test)))
+\end{lstlisting}
+
+\section{فصل ۶ — قوانین انجمنی}
+\begin{lstlisting}
+from mlxtend.frequent_patterns import apriori, association_rules
+
+frequent_itemsets = apriori(basket_df, min_support=0.05, use_colnames=True)
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.6)
+\end{lstlisting}
+
+\section{فصل ۷ — خوشه‌بندی}
+\begin{lstlisting}
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
+
+kmeans = KMeans(n_clusters=3, random_state=42).fit(X_scaled)
+dbscan = DBSCAN(eps=0.5, min_samples=5).fit(X_scaled)
+\end{lstlisting}
+
+\section{فصل ۸ — تشخیص داده‌های پرت}
+\begin{lstlisting}
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
+
+iso = IsolationForest(contamination=0.05).fit(X_scaled)
+lof = LocalOutlierFactor(n_neighbors=20)
+outliers = lof.fit_predict(X_scaled)
+\end{lstlisting}
+
+\section{فصل ۹ — داده‌کاوی متن}
+\begin{lstlisting}
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+vectorizer = TfidfVectorizer(stop_words="english")
+X_text = vectorizer.fit_transform(corpus)
+\end{lstlisting}

@@ -1,0 +1,95 @@
+% !TEX program = xelatex
+%==========================================================
+% مبانی داده‌کاوی
+% فایل اصلی کتاب — همه فصل‌ها از اینجا فراخوانی می‌شوند
+%==========================================================
+\documentclass[12pt,oneside]{memoir}
+
+% ---------- بسته‌های پایه ----------
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}     % برای کد پایتون در پیوست
+\usepackage{caption}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc}
+% ---------- پشتیبانی فارسی (XeLaTeX) ----------
+\usepackage{xepersian}
+\settextfont{XB Niloofar}      % در صورت نبود فونت، با فونت فارسی نصب‌شده جایگزین کنید
+\setlatintextfont{Times New Roman}
+
+% ---------- مراجع ----------
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{bibliography/references.bib}
+
+% ---------- اصطلاحات بیگانه ----------
+% \dmterm{معادل فارسی}{اصطلاح انگلیسی}
+% متن فارسی را در بدنه نشان می‌دهد و اصطلاح انگلیسی را به‌صورت زیرنویس
+% و با جهت صحیح (چپ‌به‌راست) می‌آورد. برای اولین‌بار که یک اصطلاح در هر
+% فصل معرفی می‌شود استفاده شود.
+\newcommand{\dmterm}[2]{#1\footnote{\LR{#2}}}
+
+% ---------- تنظیمات کد پایتون ----------
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\small %\LTRfootnote,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    numbers=left,
+    numberstyle=\tiny,
+    breaklines=true,
+    frame=single
+}
+\lstset{style=pythonstyle}
+
+% ---------- اطلاعات کتاب ----------
+\title{مبانی داده‌کاوی}
+\author{نویسنده: محرم منصوری زاده}
+\date{\today}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+\input{frontmatter/preface} \newpage
+\tableofcontents
+
+\mainmatter
+
+% ---------- بخش اول: مبانی ----------
+\part{مبانی}
+\input{chapters/chapter01-intro-v1}
+\input{chapters/chapter02-data-v1}
+
+% ---------- بخش دوم: یادگیری با نظارت ----------
+\part{یادگیری با نظارت}
+\input{chapters/chapter03-classification-basic}
+\input{chapters/chapter04-classification-advanced}
+\input{chapters/chapter05-regression}
+
+% ---------- بخش سوم: یادگیری بدون نظارت ----------
+\part{یادگیری بدون نظارت}
+\input{chapters/chapter06-association-rules}
+\input{chapters/chapter07-clustering}
+\input{chapters/chapter08-outliers}
+
+% ---------- بخش چهارم: موضوعات تکمیلی ----------
+\part{موضوعات تکمیلی}
+\input{chapters/chapter09-text-web}
+\input{chapters/chapter10-complex-data}
+
+% ---------- پیوست‌ها ----------
+\appendix
+\input{appendices/appendix-a-python}
+\input{appendices/appendix-b-datasets}
+
+\backmatter
+\printbibliography[title={مراجع}]
+
+\end{document}

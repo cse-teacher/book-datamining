@@ -1,0 +1,517 @@
+\chapter{آشنایی با داده و پیش‌پردازش}
+\label{ch:data}
+
+\section*{اهداف این فصل}
+\begin{itemize}
+    \item شناخت انواع ویژگی‌ها و مقیاس‌های اندازه‌گیری داده
+    \item درک مفهوم کیفیت داده و منابع اصلی مشکلات آن
+    \item تسلط بر روش‌های پاک‌سازی، یکپارچه‌سازی، تبدیل و کاهش داده
+    \item آشنایی با معیارهای شباهت و فاصله میان نمونه‌ها
+    \item پیاده‌سازی عملی هر مرحله با پایتون و مشاهدهٔ اثر آن روی داده
+\end{itemize}
+
+\section{انواع ویژگی‌ها}
+\label{sec:attribute-types}
+
+هر مجموعه داده از تعدادی \dmterm{\textbf{نمونه}}{Instance / Object / Record}
+تشکیل شده که هر یک با مجموعه‌ای از \dmterm{\textbf{ویژگی‌ها}}{Attributes / Features}
+توصیف می‌شود. شناخت دقیق نوع هر ویژگی، پیش‌نیاز انتخاب روش پیش‌پردازش و الگوریتم
+مناسب است. ویژگی‌ها را می‌توان از دو منظر دسته‌بندی کرد.
+
+\subsection{دسته‌بندی کیفی در برابر کمّی}
+
+\begin{itemize}
+    \item \dmterm{\textbf{ویژگی‌های کیفی}}{Categorical / Qualitative}
+    \begin{itemize}
+        \item \dmterm{\textit{اسمی}}{Nominal}: مقادیر فقط برچسب‌اند و ترتیب یا فاصلهٔ
+              معناداری ندارند. مثال: رنگ چشم، شهر محل سکونت.
+        \item \dmterm{\textit{ترتیبی}}{Ordinal}: مقادیر ترتیب معناداری دارند، اما فاصلهٔ
+              میان آن‌ها مشخص یا یکسان نیست. مثال: سطح تحصیلات (دیپلم، کارشناسی،
+              کارشناسی‌ارشد)، رضایت مشتری (کم، متوسط، زیاد).
+    \end{itemize}
+    \item \dmterm{\textbf{ویژگی‌های کمّی}}{Numeric / Quantitative}
+    \begin{itemize}
+        \item \dmterm{\textit{بازه‌ای}}{Interval}: فاصله میان مقادیر معنادار است، اما
+              صفر مطلق ندارد. مثال: دما بر حسب سلسیوس.
+        \item \dmterm{\textit{نسبتی}}{Ratio}: علاوه بر فاصلهٔ معنادار، صفر مطلق نیز دارد،
+              بنابراین نسبت دو مقدار هم معنادار است. مثال: سن، درآمد، وزن.
+    \end{itemize}
+\end{itemize}
+
+هر نوع ویژگی مجموعهٔ مشخصی از عملیات ریاضی معنادار را مجاز می‌کند؛ برای مثال
+میانگین‌گرفتن از «رنگ چشم» بی‌معناست، اما برای «سن» کاملاً معنادار است. جدول
+\ref{tab:attr-types} این ارتباط را خلاصه می‌کند.
+
+\begin{table}[htbp]
+\centering
+\caption{انواع ویژگی‌ها و عملیات معنادار برای هر نوع}
+\label{tab:attr-types}
+\begin{tabular}{@{}p{2.0cm}p{3.9cm}p{3.4cm}p{2.7cm}@{}}
+\toprule
+\textbf{نوع} & \textbf{ویژگی کلیدی} & \textbf{مثال} & \textbf{عملیات مجاز} \\
+\midrule
+اسمی & فقط برچسب، بدون ترتیب & رنگ چشم، کد شهر & برابری، مد \\
+\addlinespace
+ترتیبی & دارای ترتیب، بدون فاصلهٔ معنادار & سطح تحصیلات، رتبه & مقایسه، میانه \\
+\addlinespace
+بازه‌ای & فاصله معنادار، بدون صفر مطلق & دمای سلسیوس، سال تقویمی & جمع، تفریق، میانگین \\
+\addlinespace
+نسبتی & فاصله معنادار و صفر مطلق & سن، درآمد، وزن & همهٔ عملیات، نسبت \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{دسته‌بندی گسسته در برابر پیوسته}
+
+از منظری دیگر، ویژگی‌ها به \textbf{گسسته} (تعداد محدود یا شمارش‌پذیر از
+مقادیر، مانند تعداد فرزندان) و \textbf{پیوسته} (بی‌نهایت مقدار ممکن در یک
+بازه، مانند قد یا وزن) تقسیم می‌شوند. تشخیص درست این نوع، در انتخاب روش
+گسسته‌سازی (بخش \ref{subsec:discretization}) و همچنین نوع نمودار مناسب برای
+تحلیل اکتشافی داده اهمیت دارد.
+
+\section{کیفیت داده}
+\label{sec:data-quality}
+
+پیش از هر کاوشی، باید کیفیت داده ارزیابی شود. مهم‌ترین مشکلات رایج در داده‌های
+واقعی عبارت‌اند از:
+
+\begin{itemize}
+    \item \dmterm{\textbf{مقادیر گمشده}}{Missing Values}: به دلایلی مانند خطای ثبت،
+          عدم پاسخ‌گویی کاربر یا خرابی حسگر.
+    \item \dmterm{\textbf{نویز}}{Noise}: خطای تصادفی یا انحراف در مقدار اندازه‌گیری‌شده.
+    \item \dmterm{\textbf{داده‌های ناسازگار}}{Inconsistent Data}: تناقض میان رکوردها،
+          مثلاً دو مقدار متفاوت برای سن یک فرد در دو جدول مختلف.
+    \item \dmterm{\textbf{داده‌های تکراری}}{Duplicate Data}: ثبت چندبارهٔ یک رکورد.
+    \item \dmterm{\textbf{داده‌های پرت}}{Outliers}: مقادیری که به‌طور قابل‌توجهی با
+          بقیهٔ داده تفاوت دارند (جزئیات بیشتر در فصل \ref{ch:outliers}).
+\end{itemize}
+
+نکتهٔ مهم این است که نویز و داده پرت یکسان نیستند: نویز معمولاً خطای تصادفی
+و بی‌معنی است که باید حذف یا اصلاح شود، اما داده پرت می‌تواند خودِ هدف تحلیل
+باشد (مثلاً تراکنش متقلبانه).
+
+اولین گام عملی در ارزیابی کیفیت، \textbf{دیدن} الگوی مقادیر گمشده است. شکل
+\ref{fig:missing-values} نمونه‌ای از این نمودار را نشان می‌دهد: هر سطر یک رکورد،
+هر ستون یک ویژگی، و خانه‌های سفید نشان‌دهندهٔ مقدار گمشده‌اند. در این مثال،
+ستون‌های «درآمد» و «امتیاز رضایت» بیشترین گمشدگی را دارند و ستون «شهر» تقریباً
+کامل است؛ چنین الگویی به تحلیلگر می‌گوید تلاش پاک‌سازی را روی کدام ستون‌ها
+متمرکز کند.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/ch02_missing_values.pdf}
+\caption{نمایش الگوی مقادیر گمشده در یک مجموعه داده (سفید = گمشده)}
+\label{fig:missing-values}
+\end{figure}
+
+\section{پیش‌پردازش داده}
+\label{sec:preprocessing}
+
+پیش‌پردازش داده مجموعه‌ای از گام‌های پشت‌سرهم است که داده خام را به داده‌ای
+مناسب برای الگوریتم‌های داده‌کاوی تبدیل می‌کند. شکل \ref{fig:preprocessing-pipeline}
+ترتیب متداول این گام‌ها را نشان می‌دهد؛ هر یک در ادامه به‌تفصیل بررسی می‌شود.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=0.28cm,
+    st/.style={rectangle, rounded corners, draw=blue!60, thick, fill=blue!8,
+               minimum width=2.0cm, minimum height=0.95cm, text width=1.85cm,
+               align=center, font=\scriptsize},
+    endp/.style={rectangle, rounded corners, draw=gray!70, thick, fill=gray!12,
+               minimum width=2.0cm, minimum height=0.95cm, text width=1.85cm,
+               align=center, font=\scriptsize},
+    note/.style={text width=2.0cm, align=center, font=\tiny, text=gray!70!black},
+    arr/.style={-{Latex[length=2mm]}, thick, draw=blue!60}
+]
+\node[endp] (raw) {داده خام};
+\node[st, left=of raw] (clean) {پاک‌سازی};
+\node[st, left=of clean] (integ) {یکپارچه‌سازی};
+\node[st, left=of integ] (trans) {تبدیل};
+\node[st, left=of trans] (red) {کاهش};
+\node[endp, left=of red, fill=green!10, draw=green!60!black] (ready) {داده آماده};
+
+\node[note, below=0.15cm of clean] {حذف نویز و مقدار گمشده};
+\node[note, below=0.15cm of integ] {ترکیب چند منبع داده};
+\node[note, below=0.15cm of trans] {نرمال‌سازی و گسسته‌سازی};
+\node[note, below=0.15cm of red] {نمونه‌برداری و \LR{PCA}};
+
+\draw[arr] (raw) -- (clean);
+\draw[arr] (clean) -- (integ);
+\draw[arr] (integ) -- (trans);
+\draw[arr] (trans) -- (red);
+\draw[arr] (red) -- (ready);
+\end{tikzpicture}
+\caption{گام‌های متداول پیش‌پردازش داده}
+\label{fig:preprocessing-pipeline}
+\end{figure}
+
+\subsection{پاک‌سازی داده}
+
+رایج‌ترین راهکارها برای مقادیر گمشده در جدول \ref{tab:missing-strategies}
+آمده‌اند. انتخاب میان آن‌ها به مقدار گمشدگی، علت آن و اهمیت ستون بستگی دارد.
+
+\begin{table}[htbp]
+\centering
+\caption{راهکارهای مواجهه با مقادیر گمشده}
+\label{tab:missing-strategies}
+\begin{tabular}{@{}p{2.9cm}p{4.5cm}p{4.3cm}@{}}
+\toprule
+\textbf{راهکار} & \textbf{مزیت} & \textbf{عیب} \\
+\midrule
+حذف رکورد & ساده و سریع & اتلاف داده؛ در گمشدگی زیاد خطرناک \\
+\addlinespace
+جایگذاری با میانگین/میانه/مد & حفظ تعداد نمونه‌ها؛ پیاده‌سازی آسان & کاهش واریانس و نادیده‌گرفتن روابط میان ویژگی‌ها \\
+\addlinespace
+جایگذاری با مدل پیش‌بینی & استفاده از سایر ویژگی‌ها؛ دقت بالاتر & پیچیده‌تر و مستعد نشت اطلاعات \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+برای هموارسازی نویز نیز روش‌هایی مانند \dmterm{\textbf{بین‌بندی}}{Binning}،
+رگرسیون و تحلیل خوشه‌ای (برای شناسایی و حذف نقاط دورافتاده) به کار می‌روند.
+
+نمونه‌کد زیر، شمارش مقادیر گمشده و جایگذاری آن‌ها با میانه را با
+\texttt{pandas} و \texttt{scikit-learn} نشان می‌دهد:
+
+\begin{lstlisting}
+import pandas as pd
+from sklearn.impute import SimpleImputer
+
+df = pd.read_csv("customers.csv")
+
+# 1) how many values are missing in each column?
+print(df.isna().sum())
+
+# 2) fill numeric gaps with the column median
+num_cols = df.select_dtypes(include="number").columns
+imputer = SimpleImputer(strategy="median")
+df[num_cols] = imputer.fit_transform(df[num_cols])
+\end{lstlisting}
+
+\subsection{یکپارچه‌سازی داده}
+
+وقتی داده از چند منبع مختلف (مثلاً چند پایگاه داده یا چند فایل) جمع‌آوری
+می‌شود، باید به مسائلی مانند موارد زیر توجه کرد:
+
+\begin{itemize}
+    \item \dmterm{\textbf{تشخیص موجودیت یکسان}}{Entity Identification}: آیا
+          \texttt{customer\_id} در یک جدول همان \texttt{cust\_no} در جدول
+          دیگر است؟
+    \item \dmterm{\textbf{افزونگی}}{Redundancy}: آیا یک ویژگی از ترکیب چند ویژگی
+          دیگر قابل استخراج است؟ (مثلاً سود، از تفاضل درآمد و هزینه.)
+    \item \textbf{تناقض مقیاس یا واحد}: مثلاً دما در یک منبع بر حسب سلسیوس و
+          در منبع دیگر بر حسب فارنهایت ثبت شده باشد.
+\end{itemize}
+
+\subsection{تبدیل و نرمال‌سازی داده}
+
+بسیاری از الگوریتم‌ها (به‌ویژه آن‌هایی که بر پایهٔ فاصله عمل می‌کنند، مانند
+نزدیک‌ترین همسایه یا \LR{k-means}) به مقیاس ویژگی‌ها حساس‌اند. اگر یک ویژگی در
+بازهٔ $[0, 1]$ و ویژگی دیگر در بازهٔ $[0, 100000]$ باشد، ویژگی دوم به‌طور
+نادرست بر محاسبهٔ فاصله غالب می‌شود. دو روش رایج نرمال‌سازی عبارت‌اند از:
+
+\paragraph{نرمال‌سازی \LR{Min-Max}}
+مقدار هر ویژگی به بازهٔ $[0, 1]$ نگاشت می‌شود:
+\[
+x' = \frac{x - \min(x)}{\max(x) - \min(x)}
+\]
+
+\paragraph{استانداردسازی \LR{Z-score}}
+مقدار هر ویژگی بر اساس میانگین ($\mu$) و انحراف معیار ($\sigma$) آن
+تبدیل می‌شود:
+\[
+x' = \frac{x - \mu}{\sigma}
+\]
+
+استانداردسازی \LR{Z-score} معمولاً در حضور داده‌های پرت پایدارتر از
+\LR{Min-Max} عمل می‌کند، زیرا \LR{Min-Max} به شدت به مقادیر حداقل و حداکثر
+حساس است.
+
+\paragraph{یک مثال عددی}
+پنج مشاهده با مقادیر $10, 20, 30, 40, 100$ را در نظر بگیرید (مقدار ۱۰۰ یک
+مقدار پرت نسبت به بقیه است). برای این داده $\min = 10$، $\max = 100$،
+$\mu = 40$ و $\sigma \approx 31.62$ (انحراف معیار جامعه) است. نتیجهٔ دو
+تبدیل در جدول \ref{tab:scaling-example} آمده است. دقت کنید که در \LR{Min-Max}
+مقدار پرت باعث می‌شود چهار مقدار دیگر در بازهٔ باریک $[0, 0.33]$ فشرده شوند.
+
+\begin{table}[htbp]
+\centering
+\caption{مقایسهٔ عددی نرمال‌سازی \LR{Min-Max} و \LR{Z-score} روی یک نمونهٔ کوچک}
+\label{tab:scaling-example}
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{ردیف} & $x$ & \textbf{\LR{Min-Max}} & \textbf{\LR{Z-score}} \\
+\midrule
+۱ & 10  & 0.000 & $-0.949$ \\
+۲ & 20  & 0.111 & $-0.632$ \\
+۳ & 30  & 0.222 & $-0.316$ \\
+۴ & 40  & 0.333 & \phantom{$-$}0.000 \\
+۵ & 100 & 1.000 & \phantom{$-$}1.897 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+اهمیت مقیاس‌بندی را وقتی بهتر می‌بینیم که چند ویژگی با مقیاس‌های بسیار
+متفاوت داشته باشیم. شکل \ref{fig:scaling-effect} دو خوشهٔ مصنوعی از افراد را
+بر اساس «سن» (بازهٔ چند ده) و «درآمد» (بازهٔ ده‌ها هزار) نشان می‌دهد. در
+نمودار سمت چپ (مقیاس خام)، فاصلهٔ اقلیدسی عملاً فقط به درآمد وابسته است و
+سن هیچ نقشی ندارد؛ پس از هر دو نوع مقیاس‌بندی، دو ویژگی وزن قابل‌مقایسه‌ای
+پیدا می‌کنند.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_scaling_effect.pdf}
+\caption{اثر مقیاس‌بندی بر دو ویژگی با مقیاس متفاوت: از چپ به راست، مقیاس خام،
+\LR{Min-Max} و \LR{Z-score}}
+\label{fig:scaling-effect}
+\end{figure}
+
+پیاده‌سازی این دو تبدیل با \texttt{scikit-learn} به‌صورت زیر است:
+
+\begin{lstlisting}
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+x = np.array([[10], [20], [30], [40], [100]], dtype=float)
+
+x_minmax = MinMaxScaler().fit_transform(x)
+x_zscore = StandardScaler().fit_transform(x)
+
+print(x_minmax.ravel().round(3))  # [0.    0.111 0.222 0.333 1.   ]
+print(x_zscore.ravel().round(3))  # [-0.949 -0.632 -0.316  0.     1.897]
+\end{lstlisting}
+
+\subsection{کاهش داده و کاهش ابعاد}
+
+هدف کاهش داده، رسیدن به بازنمایی کوچک‌تر اما تقریباً برابر از نظر محتوای
+اطلاعاتی است. دو رویکرد اصلی عبارت‌اند از:
+
+\begin{itemize}
+    \item \textbf{کاهش تعداد نمونه‌ها}: از طریق \dmterm{نمونه‌برداری}{Sampling} یا
+          تجمیع داده.
+    \item \textbf{کاهش تعداد ویژگی‌ها (کاهش ابعاد)}: از طریق
+          \dmterm{انتخاب زیرمجموعه‌ای از ویژگی‌ها}{Feature Selection} یا
+          استخراج ویژگی جدید.
+\end{itemize}
+
+رایج‌ترین روش استخراج ویژگی، \dmterm{\textbf{تحلیل مؤلفه‌های اصلی}}{Principal Component Analysis (PCA)}
+است. ایدهٔ اصلی \LR{PCA} یافتن جهت‌هایی (مؤلفه‌های اصلی) در فضای ویژگی‌هاست که
+بیشترین واریانس داده را حفظ می‌کنند؛ با تصویر کردن داده روی چند مؤلفهٔ اول،
+می‌توان ابعاد را کاهش داد در حالی که بخش عمدهٔ اطلاعات داده حفظ می‌شود. توجه
+شود که \LR{PCA} پیش از اجرا نیازمند استانداردسازی داده است، زیرا بر پایهٔ
+واریانس عمل می‌کند.
+
+مراحل کلی \LR{PCA} به‌صورت زیر است:
+
+\begin{enumerate}
+    \item استانداردسازی هر ویژگی (میانگین صفر و واریانس یک).
+    \item محاسبهٔ ماتریس کوواریانس ویژگی‌ها.
+    \item یافتن بردارهای ویژه و مقادیر ویژهٔ این ماتریس؛ بردار ویژه با بزرگ‌ترین
+          مقدار ویژه، جهت بیشترین واریانس (مؤلفهٔ اول) است.
+    \item انتخاب $k$ مؤلفهٔ اول و تصویر کردن داده روی آن‌ها.
+\end{enumerate}
+
+مجموعه دادهٔ \LR{Iris} چهار ویژگی دارد و نمی‌توان آن را مستقیماً روی صفحه
+رسم کرد. شکل \ref{fig:pca-iris} نتیجهٔ کاهش آن به دو مؤلفهٔ اصلی را نشان می‌دهد.
+دو مؤلفهٔ اول در مجموع حدود ۹۶ درصد واریانس داده را نگه می‌دارند
+(۷۳ درصد و ۲۳ درصد)، و با وجود حذف دو بعد، سه گونه هنوز به‌خوبی قابل تشخیص‌اند.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/ch02_pca_iris.pdf}
+\caption{تصویر مجموعه دادهٔ \LR{Iris} روی دو مؤلفهٔ اصلی (کاهش از چهار بعد به دو بعد)}
+\label{fig:pca-iris}
+\end{figure}
+
+\begin{lstlisting}
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+X = load_iris().data
+X_scaled = StandardScaler().fit_transform(X)
+
+pca = PCA(n_components=2)
+X_2d = pca.fit_transform(X_scaled)
+
+print(pca.explained_variance_ratio_)  # about [0.730 0.229]
+\end{lstlisting}
+
+\subsection{گسسته‌سازی و سلسله‌مراتب مفهومی}
+\label{subsec:discretization}
+
+برخی الگوریتم‌ها (مانند نسخه‌های پایهٔ درخت تصمیم یا بیز ساده) بهتر با
+داده‌های کیفی کار می‌کنند. \textbf{گسسته‌سازی} فرآیند تبدیل یک ویژگی عددی
+پیوسته به تعدادی بازهٔ گسسته (مانند تبدیل سن به گروه‌های «جوان، میان‌سال،
+مسن») است. روش‌های رایج شامل بین‌بندی با عرض یکسان\footnote{\LR{Equal-width}}،
+بین‌بندی با فراوانی یکسان\footnote{\LR{Equal-depth}} و روش‌های مبتنی بر
+خوشه‌بندی هستند.
+
+تفاوت این دو روش بین‌بندی در شکل \ref{fig:binning} دیده می‌شود. در
+بین‌بندی با عرض یکسان، طول همهٔ بازه‌ها برابر است اما تعداد رکوردها در آن‌ها
+یکسان نیست (وقتی داده چوله است، یک بازه ممکن است تقریباً خالی بماند). در
+بین‌بندی با فراوانی یکسان، هر بازه تعداد برابری رکورد دارد اما عرض بازه‌ها
+متفاوت است.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/ch02_binning.pdf}
+\caption{مقایسهٔ بین‌بندی با عرض یکسان (چپ) و بین‌بندی با فراوانی یکسان (راست) روی ویژگی سن}
+\label{fig:binning}
+\end{figure}
+
+\begin{lstlisting}
+import pandas as pd
+
+ages = pd.Series([22, 25, 31, 34, 38, 41, 47, 52, 58, 66])
+
+equal_width = pd.cut(ages, bins=4)    # same interval length
+equal_depth = pd.qcut(ages, q=4)      # same number of records
+
+print(equal_width.value_counts().sort_index())
+print(equal_depth.value_counts().sort_index())
+\end{lstlisting}
+
+\dmterm{\textbf{سلسله‌مراتب مفهومی}}{Concept Hierarchy} نیز به تعریف سطوح مختلف
+انتزاع برای یک ویژگی اشاره دارد (مثلاً شهر $\to$ استان $\to$ کشور)، که در
+تحلیل‌های چندسطحی کاربرد دارد.
+
+\section{معیارهای شباهت و فاصله}
+\label{sec:similarity}
+
+بسیاری از الگوریتم‌های داده‌کاوی (خوشه‌بندی، نزدیک‌ترین همسایه، تشخیص داده پرت)
+بر پایهٔ سنجش شباهت یا فاصله میان دو نمونه عمل می‌کنند. رایج‌ترین معیارها
+عبارت‌اند از:
+
+\paragraph{فاصلهٔ اقلیدسی}
+برای دو بردار $x$ و $y$ در فضای $n$-بعدی:
+\[
+d(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
+\]
+
+\paragraph{فاصلهٔ منهتن}
+\[
+d(x, y) = \sum_{i=1}^{n} |x_i - y_i|
+\]
+
+تفاوت این دو فاصله را می‌توان روی صفحه دید. دو نقطهٔ $A=(0,0)$ و $B=(4,3)$ را
+در نظر بگیرید. فاصلهٔ اقلیدسی طول پاره‌خط مستقیم میان آن‌هاست:
+$\sqrt{4^2+3^2}=5$. فاصلهٔ منهتن مانند حرکت در خیابان‌های شبکه‌ای یک شهر است
+که فقط در امتداد افقی و عمودی می‌توان رفت: $4+3=7$ (شکل \ref{fig:distances}).
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=0.95]
+\draw[step=1, gray!30, very thin] (-0.4,-0.4) grid (5.4,4.4);
+\draw[->, gray] (-0.4,0) -- (5.4,0);
+\draw[->, gray] (0,-0.4) -- (0,4.4);
+\coordinate (A) at (0,0);
+\coordinate (B) at (4,3);
+\draw[very thick, blue!70] (A) -- (B);
+\draw[very thick, red!70, dashed]
+    (0,0) -- (1,0) -- (1,1) -- (2,1) -- (2,2) -- (3,2) -- (3,3) -- (4,3);
+\fill[black] (A) circle (2.5pt) node[below left] {$A$};
+\fill[black] (B) circle (2.5pt) node[above right] {$B$};
+\node[blue!70, font=\small] at (1.0,2.5) {$d_2 = 5$};
+\node[red!70, font=\small] at (3.7,1.4) {$d_1 = 7$};
+
+\draw[very thick, blue!70] (6.3,3.6) -- (7.0,3.6);
+\node[right, font=\small] at (7.1,3.6) {فاصلهٔ اقلیدسی};
+\draw[very thick, red!70, dashed] (6.3,2.9) -- (7.0,2.9);
+\node[right, font=\small] at (7.1,2.9) {فاصلهٔ منهتن};
+\end{tikzpicture}
+\caption{مقایسهٔ فاصلهٔ اقلیدسی و فاصلهٔ منهتن میان دو نقطه در صفحه}
+\label{fig:distances}
+\end{figure}
+
+\paragraph{فاصلهٔ مینکوفسکی}
+تعمیمی از دو فاصلهٔ بالا با پارامتر $p$:
+\[
+d(x, y) = \left( \sum_{i=1}^{n} |x_i - y_i|^p \right)^{1/p}
+\]
+که برای $p=1$ به فاصلهٔ منهتن و برای $p=2$ به فاصلهٔ اقلیدسی تبدیل می‌شود.
+
+\paragraph{شباهت کسینوسی}
+برای داده‌های با ابعاد بالا و پراکنده (مانند بردارهای متنی)، شباهت کسینوسی
+که زاویهٔ میان دو بردار را می‌سنجد، اغلب مناسب‌تر از فاصلهٔ اقلیدسی است:
+\[
+\text{sim}(x, y) = \frac{x \cdot y}{\|x\| \, \|y\|}
+\]
+
+برای ویژگی‌های اسمی یا دودویی نیز معیارهایی مانند
+\dmterm{\textbf{ضریب تطابق ساده}}{Simple Matching Coefficient} و
+\dmterm{\textbf{ضریب ژاکارد}}{Jaccard Coefficient} به کار می‌روند که در فصل
+مربوط به خوشه‌بندی (فصل \ref{ch:clustering}) دوباره به آن‌ها پرداخته می‌شود.
+جدول \ref{tab:distance-summary} چهار معیار اصلی این بخش را کنار هم قرار می‌دهد.
+
+\begin{table}[htbp]
+\centering
+\caption{خلاصهٔ معیارهای فاصله و شباهت}
+\label{tab:distance-summary}
+\begin{tabular}{@{}p{2.6cm}p{3.9cm}p{5.6cm}@{}}
+\toprule
+\textbf{معیار} & \textbf{فرمول} & \textbf{کاربرد مناسب} \\
+\midrule
+اقلیدسی & $\sqrt{\sum_i (x_i-y_i)^2}$ & داده‌های عددی با ابعاد کم و مقیاس یکسان \\
+\addlinespace
+منهتن & $\sum_i |x_i-y_i|$ & داده‌هایی که مقادیر پرت دارند یا ابعاد آن‌ها مستقل‌اند \\
+\addlinespace
+مینکوفسکی & $\left(\sum_i |x_i-y_i|^p\right)^{1/p}$ & تعمیم دو معیار بالا؛ پارامتر $p$ قابل تنظیم \\
+\addlinespace
+کسینوسی & $\dfrac{x\cdot y}{\|x\|\,\|y\|}$ & داده‌های پراکنده و پرابعاد مانند متن \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+محاسبهٔ این معیارها با \texttt{scipy} کوتاه است. برای دو نقطهٔ شکل
+\ref{fig:distances}:
+
+\begin{lstlisting}
+from scipy.spatial import distance
+
+A, B = [0, 0], [4, 3]
+
+print(distance.euclidean(A, B))   # 5.0
+print(distance.cityblock(A, B))   # 7   (Manhattan)
+print(distance.minkowski(A, B, p=3))
+
+# cosine *distance* = 1 - cosine similarity
+print(1 - distance.cosine([1, 2, 3], [2, 4, 6]))  # 1.0
+\end{lstlisting}
+
+\section*{پیاده‌سازی در پایتون}
+
+نمونه‌کدهای این فصل در متن هر بخش آمده‌اند. مجموعهٔ کامل آن‌ها به‌صورت یک
+اسکریپت واحد (جایگذاری، مقیاس‌بندی، \LR{PCA}، بین‌بندی و محاسبهٔ فاصله) در بخش
+«فصل ۲» پیوست الف (\ref{app:python}) گردآوری شده است.
+
+\section*{خلاصهٔ فصل}
+
+در این فصل با انواع ویژگی‌ها، منابع اصلی مشکلات کیفیت داده، و مراحل کلیدی
+پیش‌پردازش شامل پاک‌سازی، یکپارچه‌سازی، تبدیل، کاهش داده و گسسته‌سازی آشنا
+شدیم. همچنین رایج‌ترین معیارهای فاصله و شباهت را که در فصل‌های بعدی
+(به‌ویژه طبقه‌بندی و خوشه‌بندی) بارها استفاده خواهند شد، مرور کردیم. در
+فصل بعد، به اولین وظیفهٔ اصلی داده‌کاوی یعنی طبقه‌بندی می‌پردازیم.
+
+\section*{تمرین‌ها}
+
+\begin{enumerate}
+    \item برای هر یک از ویژگی‌های «شمارهٔ ملی»، «دمای بدن»، «رتبهٔ مسابقه»
+          و «تعداد فرزندان» نوع آن (اسمی/ترتیبی/بازه‌ای/نسبتی) را مشخص کنید.
+    \item فرض کنید در یک مجموعه داده، ۱۵ درصد مقادیر ستون «درآمد» گمشده است.
+          با توجه به جدول \ref{tab:missing-strategies}، دو راهکار پیشنهاد دهید و
+          مزایا و معایب هرکدام را توضیح دهید.
+    \item مقادیر $5, 15, 25, 35, 500$ را هم با \LR{Min-Max} و هم با \LR{Z-score}
+          تبدیل کنید و نتیجه را با جدول \ref{tab:scaling-example} مقایسه کنید. کدام روش
+          در برابر مقدار ۵۰۰ پایدارتر است؟
+    \item فاصلهٔ اقلیدسی و فاصلهٔ منهتن را برای دو بردار
+          $x = (2, 4, 6)$ و $y = (5, 1, 8)$ محاسبه کنید و پاسخ را با کد
+          \texttt{scipy} بررسی کنید.
+    \item چرا شباهت کسینوسی برای مقایسهٔ اسناد متنی معمولاً بهتر از فاصلهٔ
+          اقلیدسی عمل می‌کند؟
+    \item در شکل \ref{fig:pca-iris}، اگر فقط مؤلفهٔ اول را نگه می‌داشتیم، تفکیک کدام
+          دو گونه دشوارتر می‌شد؟ چرا؟
+    \item با \texttt{pd.cut} و \texttt{pd.qcut} یک ستون سن دلخواه را بین‌بندی کنید
+          و تفاوت تعداد رکوردها در بازه‌ها را با شکل \ref{fig:binning} مقایسه کنید.
+\end{enumerate}

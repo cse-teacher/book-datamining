@@ -1,0 +1,26 @@
+name: Build Book PDF
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile LaTeX (XeLaTeX + Biber)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          compiler: latexmk
+          args: -xelatex -interaction=nonstopmode -halt-on-error
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: datamining-book
+          path: main.pdf
